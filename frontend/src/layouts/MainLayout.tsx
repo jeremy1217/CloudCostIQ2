@@ -31,6 +31,8 @@ import {
   Notifications as NotificationsIcon,
   Person as PersonIcon,
   Search as SearchIcon,
+  AccountBalance as AccountBalanceIcon,
+  BugReport as BugReportIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -52,6 +54,8 @@ const MainLayout: React.FC = () => {
   const menuItems: MenuItem[] = [
     { text: 'Dashboard', path: '/', icon: <DashboardIcon /> },
     { text: 'Cost Analysis', path: '/cost-analysis', icon: <BarChartIcon /> },
+    { text: 'Budget Management', path: '/budget-management', icon: <AccountBalanceIcon /> },
+    { text: 'Test Page', path: '/test', icon: <BugReportIcon /> },
     { text: 'Recommendations', path: '/recommendations', icon: <LightbulbIcon /> },
     { text: 'Resources', path: '/resources', icon: <StorageIcon /> },
     { text: 'Settings', path: '/settings', icon: <SettingsIcon /> },
@@ -62,6 +66,7 @@ const MainLayout: React.FC = () => {
   };
 
   const handleNavigation = (path: string) => {
+    console.log(`Navigating to: ${path}`); // Debug log
     navigate(path);
     if (isMobile) {
       setOpen(false);
