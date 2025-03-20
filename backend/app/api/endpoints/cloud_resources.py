@@ -1,14 +1,24 @@
 from fastapi import APIRouter, Query, Path
 from typing import List, Optional
+from app.schemas.cloud_resources import ( 
+    ResourceSummaryRequest, ResourceSummaryResponse,
+    ResourceInventoryRequest, ResourceInventoryResponse,
+    ResourceUtilizationRequest, ResourceUtilizationResponse )
+from app.auth.dependencies import get_current_user
+from app.db.models import User
 
 router = APIRouter()
 
-@router.get("/summary")
+@router.get("/summary", response_model=ResourceSummaryResponse)
 async def get_resources_summary(
-    cloud_providers: List[str] = Query(None, description="List of cloud providers to include")
+    request: ResourceSummaryRequest = Depends(),
+    current_user: User = Depends(get_current_user)
+    # cloud_providers: List[str] = Query(None, description="List of cloud providers to include")
 ):
     """Get a summary of cloud resources across providers."""
     # In production, this would connect to cloud provider APIs
+    org_id = current_user.organization_id
+
     return {
         "total_resources": 156,
         "resources_by_provider": {
@@ -25,16 +35,23 @@ async def get_resources_summary(
         }
     }
 
-@router.get("/inventory")
+@router.get("/inventory", response_model=ResourceInventoryResponse)
 async def get_resources_inventory(
-    cloud_provider: str = Query(..., description="Cloud provider (aws, azure, gcp)"),
-    resource_type: Optional[str] = Query(None, description="Resource type"),
-    region: Optional[str] = Query(None, description="Region/location"),
-    limit: int = Query(50, description="Maximum number of resources to return"),
-    offset: int = Query(0, description="Offset for pagination")
+    request: ResourceSummaryRequest = Depends(),
+    current_user: User = Depends(get_current_user)
+    # cloud_provider: str = Query(..., description="Cloud provider (aws, azure, gcp)"),
+    # resource_type: Optional[str] = Query(None, description="Resource type"),
+    # region: Optional[str] = Query(None, description="Region/location"),
+    # limit: int = Query(50, description="Maximum number of resources to return"),
+    # offset: int = Query(0, description="Offset for pagination")
 ):
     """Get detailed inventory of cloud resources."""
     # In production, this would fetch actual resource data from cloud providers
+    if request.limit > 100:
+        raise HTTPException(status_code=400, detail="Limit cannot exceed 100")
+    
+    org_id = current_user.organization_id
+
     return {
         "total_count": 87,
         "returned_count": 2,  # Limited for example
@@ -74,15 +91,19 @@ async def get_resources_inventory(
         ]
     }
 
-@router.get("/utilization")
+@router.get("/utilization", response_model=ResourceUtilizationResponse)
 async def get_resource_utilization(
-    cloud_provider: str = Query(..., description="Cloud provider (aws, azure, gcp)"),
-    resource_id: str = Query(..., description="Resource ID"),
-    metric: str = Query("cpu", description="Metric to retrieve (cpu, memory, disk, network)"),
-    period: str = Query("7d", description="Time period (24h, 7d, 30d)")
+    request: ResourceSummaryRequest = Depends(),
+    current_user: User = Depends(get_current_user)
+    # cloud_provider: str = Query(..., description="Cloud provider (aws, azure, gcp)"),
+    # resource_id: str = Query(..., description="Resource ID"),
+    # metric: str = Query("cpu", description="Metric to retrieve (cpu, memory, disk, network)"),
+    # period: str = Query("7d", description="Time period (24h, 7d, 30d)")
 ):
     """Get utilization metrics for a specific resource."""
     # In production, this would fetch actual metrics from cloud monitoring services
+    org_id = current_user.organization_id
+    
     return {
         "resource_id": "i-0abc123def456789",
         "resource_name": "web-server-1",

@@ -21,11 +21,12 @@ async def root():
     return {"message": "Welcome to CloudCostIQ API"}
 
 # Import and include routers
-from app.api.endpoints import cost_analysis, recommendations, cloud_resources
+from app.api.endpoints import cost_analysis, recommendations, cloud_resources, auth
 
 app.include_router(cost_analysis.router, prefix="/api/cost-analysis", tags=["Cost Analysis"])
 app.include_router(recommendations.router, prefix="/api/recommendations", tags=["Recommendations"])
 app.include_router(cloud_resources.router, prefix="/api/resources", tags=["Cloud Resources"])
+app.include_router(auth.router, prefix="/api/auth", tags=["Authetication"])
 
 if __name__ == "__main__":
     import uvicorn

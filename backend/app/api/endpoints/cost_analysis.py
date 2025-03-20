@@ -1,14 +1,19 @@
 from fastapi import APIRouter, Depends, Query
 from typing import List, Optional
+from app.schemas.cost_analysis import DashboardSummaryRequest
+from app.auth.dependencies import get_current_user
+from app.db.models import User
 from datetime import datetime, timedelta
 
 router = APIRouter()
 
 @router.get("/dashboard-summary")
 async def get_dashboard_summary(
-    start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
-    end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
-    cloud_providers: List[str] = Query(None, description="List of cloud providers to include")
+    request: DashboardSummaryRequest = Depends(),
+    current_user: User = Depends(get_current_user)
+    # start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
+    # end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
+    # cloud_providers: List[str] = Query(None, description="List of cloud providers to include")
 ):
     """Get a summary of costs across all cloud providers for the dashboard."""
     # This would connect to your actual data source in production

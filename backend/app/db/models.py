@@ -1,8 +1,13 @@
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import JSON
+from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean, JSON, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .database import Base
 import json
+from app.security.encryption import encrypt_data, decrypt_data
+from app.schemas.credentials import AWSCredentials, AzureCredentials, GCPCredentials
 
 class CloudProvider(Base):
     __tablename__ = "cloud_providers"
@@ -11,15 +16,43 @@ class CloudProvider(Base):
     name = Column(String, unique=True, index=True)
     api_key = Column(String)
     api_secret = Column(String)
-    credentials = Column(Text)
+    # Replace the Text column with JSONB
+    # credentials = Column(JSONB)  # Use JSONB for PostgreSQL
+    credentials = Column(MutableDict.as_mutable(JSON))
     
     resources = relationship("CloudResource", back_populates="provider")
     costs = relationship("CostEntry", back_populates="provider")
-
+   
     def __init__(self, **kwargs):
-        if 'credentials' in kwargs and isinstance(kwargs['credentials'], dict):
-            kwargs['credentials'] = json.dumps(kwargs['credentials'])
         super().__init__(**kwargs)
+    
+    def set_credentials(self, credentials_dict, provider_type):
+        """Validate and encrypt credentials"""
+        # Validate based on provider type
+        if provider_type.lower() == 'aws':
+            AWSCredentials(**credentials_dict)  # Raises ValidationError if invalid
+        elif provider_type.lower() == 'azure':
+            AzureCredentials(**credentials_dict)
+        elif provider_type.lower() == 'gcp':
+            GCPCredentials(**credentials_dict)
+        else:
+            raise ValueError(f"Unsupported provider type: {provider_type}")
+            
+        # Encrypt the credentials
+        json_str = json.dumps(credentials_dict)
+        self.credentials = encrypt_data(json_str)
+    def set_credentials(self, credentials_dict):
+        """Encrypt credentials before storing"""
+        if credentials_dict:
+            json_str = json.dumps(credentials_dict)
+            self.credentials = encrypt_data(json_str)
+    
+    def get_credentials(self):
+        """Decrypt credentials when retrieving"""
+        if self.credentials:
+            decrypted = decrypt_data(self.credentials)
+            return json.loads(decrypted)
+        return {}
 
 
 class CloudResource(Base):
@@ -93,3 +126,16 @@ class Recommendation(Base):
         if 'recommended_config' in kwargs and isinstance(kwargs['recommended_config'], dict):
             kwargs['recommended_config'] = json.dumps(kwargs['recommended_config'])
         super().__init__(**kwargs) 
+
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    full_name = Column(String)
+    hashed_password = Column(String)
+    is_active = Column(Boolean, default=True)
+    organization_id = Column(Integer, ForeignKey("organizations.id"))
+    
+    organization = relationship("Organization", back_populates="users")
