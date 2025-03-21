@@ -37,6 +37,8 @@ env/
 .env
 .idea/
 .vscode/
+venv
+venv311
 *.sublime-project
 *.sublime-workspace
 
