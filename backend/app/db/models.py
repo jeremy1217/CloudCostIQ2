@@ -1,13 +1,16 @@
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import JSON
 from sqlalchemy.ext.mutable import MutableDict
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean, JSON, Text
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from .database import Base
+from .database import Base, engine
 import json
 from app.security.encryption import encrypt_data, decrypt_data
 from app.schemas.credentials import AWSCredentials, AzureCredentials, GCPCredentials
+
+# Check if using PostgreSQL to use JSONB
+is_postgres = 'postgresql' in str(engine.url)
 
 class CloudProvider(Base):
     __tablename__ = "cloud_providers"
@@ -16,9 +19,8 @@ class CloudProvider(Base):
     name = Column(String, unique=True, index=True)
     api_key = Column(String)
     api_secret = Column(String)
-    # Replace the Text column with JSONB
-    # credentials = Column(JSONB)  # Use JSONB for PostgreSQL
-    credentials = Column(MutableDict.as_mutable(JSON))
+    # Use JSONB for PostgreSQL, fallback to JSON for other databases
+    credentials = Column(MutableDict.as_mutable(JSONB if is_postgres else JSON))
     
     resources = relationship("CloudResource", back_populates="provider")
     costs = relationship("CostEntry", back_populates="provider")
@@ -141,6 +143,18 @@ class User(Base):
     organization = relationship("Organization", back_populates="users")
 
 
+class Organization(Base):
+    __tablename__ = "organizations"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+    plan = Column(String, default="free")  # free, basic, premium, enterprise
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    users = relationship("User", back_populates="organization")
+    ai_models = relationship("AIModel", back_populates="organization")
+
+
 # Add new model classes
 class AIModel(Base):
     """AI model metadata and tracking"""
@@ -151,7 +165,7 @@ class AIModel(Base):
     model_type = Column(String)  # anomaly_detection, forecasting, optimization
     model_path = Column(String)
     training_date = Column(DateTime, default=datetime.utcnow)
-    metrics = Column(JSON)
+    metrics = Column(JSON if not is_postgres else JSONB)
     version = Column(String)
     
-    organization = relationship("Organization")
+    organization = relationship("Organization", back_populates="ai_models")

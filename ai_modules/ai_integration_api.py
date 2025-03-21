@@ -107,6 +107,7 @@ def load_models():
         optimizer = ResourceOptimizationManager()
 
 def save_models():
+    global anomaly_detector, forecaster
     """Save ML models to disk."""
     try:
         # Save anomaly detection model
@@ -331,6 +332,7 @@ def train_anomaly_detector():
 
 @app.route('/api/v1/forecasting/predict', methods=['POST'])
 def forecast_costs():
+    global forecaster
     """Generate cost forecasts."""
     log_api_call("/api/v1/forecasting/predict")
     
@@ -388,6 +390,7 @@ def forecast_costs():
 
 @app.route('/api/v1/forecasting/train', methods=['POST'])
 def train_forecaster():
+    global forecaster
     """Train the cost forecasting model with new data."""
     log_api_call("/api/v1/forecasting/train")
     
@@ -418,7 +421,6 @@ def train_forecaster():
         
         # Create a new forecaster with the specified model type if needed
         if model_type != forecaster.model_type:
-            global forecaster
             forecaster = DeepLearningForecaster(model_type=model_type)
         
         # Train the model

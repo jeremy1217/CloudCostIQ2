@@ -17,9 +17,18 @@ import {
   CircularProgress,
 } from '@mui/material';
 
+// Define interface for AI model
+interface AIModel {
+  id: number;
+  model_type: string;
+  training_date: string;
+  version: string;
+  metrics: Record<string, number | string>;
+}
+
 // Add API service for AI models
 const AIModelsDashboard: React.FC = () => {
-  const [models, setModels] = useState<any[]>([]);
+  const [models, setModels] = useState<AIModel[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isTraining, setIsTraining] = useState<boolean>(false);
 
@@ -56,7 +65,8 @@ const AIModelsDashboard: React.FC = () => {
     }, 1000);
   };
 
-  const trainModel = async (modelType) => {
+  // Add proper type annotation for modelType
+  const trainModel = async (modelType: string) => {
     setIsTraining(true);
     // Replace with actual API call
     // await api.trainAIModel(modelType);
@@ -127,7 +137,7 @@ const AIModelsDashboard: React.FC = () => {
                   <TableCell>{new Date(model.training_date).toLocaleDateString()}</TableCell>
                   <TableCell>
                     {Object.entries(model.metrics).map(([key, value]) => (
-                      <div key={key}>{key}: {value}</div>
+                      <div key={key}>{key}: {String(value)}</div>
                     ))}
                   </TableCell>
                   <TableCell>
