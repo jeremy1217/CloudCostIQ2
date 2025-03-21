@@ -4,8 +4,17 @@ from app.schemas.cost_analysis import DashboardSummaryRequest
 from app.auth.dependencies import get_current_user
 from app.db.models import User
 from datetime import datetime, timedelta
+from ai_modules.enhanced_anomaly_detection import DeepAnomalyDetector
+from ai_modules.advanced_forecasting import DeepLearningForecaster
 
 router = APIRouter()
+
+# Initialize AI models
+anomaly_detector = DeepAnomalyDetector()
+forecaster = DeepLearningForecaster()
+
+
+
 
 @router.get("/dashboard-summary")
 async def get_dashboard_summary(
@@ -131,3 +140,40 @@ async def get_cost_forecast(
             "upper_bound": [14800.00, 14880.00, 14950.00, 15040.00, 15100.00]
         }
     } 
+
+# Add new AI-enhanced endpoints
+@router.post("/ai-anomalies")
+async def detect_cost_anomalies(
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Detect anomalies using AI/ML"""
+    cost_data = data.get("cost_data", [])
+    org_id = current_user.organization_id
+    
+    # Detect anomalies
+    anomalies = anomaly_detector.detect_anomalies(cost_data)
+    
+    return {
+        "anomalies": anomalies,
+        "count": len(anomalies),
+        "organization_id": org_id
+    }
+
+@router.post("/ai-forecast")
+async def forecast_costs(
+    data: dict,
+    forecast_days: int = 30,
+    current_user: User = Depends(get_current_user)
+):
+    """Generate cost forecasts using AI/ML"""
+    cost_data = data.get("cost_data", [])
+    org_id = current_user.organization_id
+    
+    # Generate forecast
+    forecast = forecaster.forecast(cost_data, forecast_steps=forecast_days)
+    
+    return {
+        "forecast": forecast,
+        "organization_id": org_id
+    }

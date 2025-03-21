@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Path
 from typing import List, Optional
 from app.schemas.recommendations import (
     RightsizingRequest, RightsizingResponse,
@@ -7,8 +7,12 @@ from app.schemas.recommendations import (
 )
 from app.auth.dependencies import get_current_user
 from app.db.models import User
+from ai_modules.intelligent_resource_optimizer import ResourceOptimizationManager
+
 
 router = APIRouter()
+
+optimizer = ResourceOptimizationManager()
 
 @router.get("/rightsizing", response_model=RightsizingResponse)
 async def get_rightsizing_recommendations(
@@ -274,4 +278,27 @@ async def get_auto_scaling_recommendations(
                 "confidence_score": 0.85
             }
         ]
+    }
+
+# Add new AI-enhanced endpoints
+@router.post("/ai-optimization")
+async def optimize_resources(
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Generate resource optimization recommendations using AI/ML"""
+    utilization_data = data.get("utilization_data", [])
+    usage_data = data.get("usage_data", [])
+    org_id = current_user.organization_id
+    
+    # Analyze infrastructure
+    results = optimizer.analyze_infrastructure(
+        utilization_data=utilization_data,
+        usage_data=usage_data
+    )
+    
+    return {
+        "optimization_results": results,
+        "estimated_savings": results.get("estimated_monthly_savings", 0),
+        "organization_id": org_id
     }
