@@ -1,5 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from ai_modules.ai_integration_api import (
+    anomaly_detection_router,
+    forecasting_router,
+    optimization_router
+)
+
 
 app = FastAPI(
     title="CloudCostIQ API",
@@ -27,6 +33,9 @@ app.include_router(cost_analysis.router, prefix="/api/cost-analysis", tags=["Cos
 app.include_router(recommendations.router, prefix="/api/recommendations", tags=["Recommendations"])
 app.include_router(cloud_resources.router, prefix="/api/resources", tags=["Cloud Resources"])
 app.include_router(auth.router, prefix="/api/auth", tags=["Authetication"])
+app.include_router(anomaly_detection_router, prefix="/api/ai/anomalies", tags=["AI Anomaly Detection"])
+app.include_router(forecasting_router, prefix="/api/ai/forecasting", tags=["AI Forecasting"])
+app.include_router(optimization_router, prefix="/api/ai/optimization", tags=["AI Optimization"])
 
 if __name__ == "__main__":
     import uvicorn

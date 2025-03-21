@@ -59,6 +59,7 @@ const MainLayout: React.FC = () => {
     { text: 'Recommendations', path: '/recommendations', icon: <LightbulbIcon /> },
     { text: 'Resources', path: '/resources', icon: <StorageIcon /> },
     { text: 'Settings', path: '/settings', icon: <SettingsIcon /> },
+    { text: 'AI Models', path: '/ai-models', icon: <BrainIcon /> },
   ];
 
   const handleDrawerToggle = () => {

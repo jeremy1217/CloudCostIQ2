@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Box } from '@mui/material';
+import AIModelsDashboard from 'pages/AIModelsDashboard';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -30,6 +31,7 @@ function App() {
           <Route path="resources" element={<Resources />} />
           <Route path="settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
+          <Route path="/ai-models" element={<AIModelsDashboard />} />
         </Route>
       </Routes>
     </Router>

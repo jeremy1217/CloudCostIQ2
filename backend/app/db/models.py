@@ -139,3 +139,19 @@ class User(Base):
     organization_id = Column(Integer, ForeignKey("organizations.id"))
     
     organization = relationship("Organization", back_populates="users")
+
+
+# Add new model classes
+class AIModel(Base):
+    """AI model metadata and tracking"""
+    __tablename__ = "ai_models"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(Integer, ForeignKey("organizations.id"))
+    model_type = Column(String)  # anomaly_detection, forecasting, optimization
+    model_path = Column(String)
+    training_date = Column(DateTime, default=datetime.utcnow)
+    metrics = Column(JSON)
+    version = Column(String)
+    
+    organization = relationship("Organization")
