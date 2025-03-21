@@ -101,9 +101,9 @@ class ReservationResponse(BaseModel):
                 expected = (values['potential_savings'] / values['total_on_demand_spend']) * 100
                 if abs(v - expected) > 0.1:  # Allow small rounding difference
                     raise ValueError(f"Savings percentage should be {expected:.2f}%")
-        return 
+        return v
 
-# Add to schemas/recommendations.py
+# Add for AutoScaling
 class AutoScalingRequest(BaseModel):
     cloud_provider: CloudProviderEnum = Field(..., description="Cloud provider")
     resource_types: Optional[List[str]] = Field(None, description="Resource types to analyze")
@@ -132,4 +132,3 @@ class AutoScalingRecommendation(BaseModel):
 
 class AutoScalingResponse(BaseModel):
     recommendations: List[AutoScalingRecommendation]
-

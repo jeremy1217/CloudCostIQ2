@@ -3,7 +3,8 @@ from typing import List, Optional
 from app.schemas.recommendations import (
     RightsizingRequest, RightsizingResponse,
     UnusedResourcesRequest, UnusedResourcesResponse,
-    ReservationRequest, ReservationResponse
+    ReservationRequest, ReservationResponse,
+    AutoScalingRequest, AutoScalingResponse
 )
 from app.auth.dependencies import get_current_user
 from app.db.models import User
@@ -171,58 +172,6 @@ async def get_reservation_recommendations(
             }
         ]
     }
-
-@router.get("/auto-scaling")
-async def get_auto_scaling_recommendations(
-    cloud_provider: str = Query(..., description="Cloud provider (aws, azure, gcp)"),
-    resource_types: List[str] = Query(None, description="Resource types to analyze")
-):
-    """Get auto-scaling recommendations based on usage patterns."""
-    # In production, this would analyze actual usage patterns and provide auto-scaling recommendations
-    return {
-        "recommendations": [
-            {
-                "resource_group": "web-servers",
-                "resource_type": "EC2 Auto Scaling Group",
-                "current_config": {
-                    "min_instances": 5,
-                    "max_instances": 10,
-                    "scaling_metric": "CPU Utilization",
-                    "scale_out_threshold": "70%",
-                    "scale_in_threshold": "30%"
-                },
-                "recommended_config": {
-                    "min_instances": 3,
-                    "max_instances": 15,
-                    "scaling_metric": "Request Count Per Target",
-                    "scale_out_threshold": "1000 requests/minute",
-                    "scale_in_threshold": "300 requests/minute"
-                },
-                "potential_benefits": "More responsive scaling with 15% cost reduction during low traffic periods",
-                "confidence_score": 0.87
-            },
-            {
-                "resource_group": "api-servers",
-                "resource_type": "Kubernetes Cluster",
-                "current_config": {
-                    "min_pods": 8,
-                    "max_pods": 16,
-                    "scaling_metric": "CPU Utilization",
-                    "scale_out_threshold": "75%",
-                    "scale_in_threshold": "40%"
-                },
-                "recommended_config": {
-                    "min_pods": 4,
-                    "max_pods": 24,
-                    "scaling_metric": "Concurrent Requests",
-                    "scale_out_threshold": "1500 concurrent requests",
-                    "scale_in_threshold": "500 concurrent requests"
-                },
-                "potential_benefits": "Better traffic handling and 20% cost reduction overnight",
-                "confidence_score": 0.85
-            }
-        ]
-    } 
 
 @router.get("/auto-scaling", response_model=AutoScalingResponse)
 async def get_auto_scaling_recommendations(
