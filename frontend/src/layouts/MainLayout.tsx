@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   CssBaseline,
@@ -33,8 +34,8 @@ import {
   Search as SearchIcon,
   AccountBalance as AccountBalanceIcon,
   BugReport as BugReportIcon,
+  Psychology as PsychologyIcon, // Using Psychology icon as a replacement for BrainIcon
 } from '@mui/icons-material';
-import { useNavigate, useLocation } from 'react-router-dom';
 
 const drawerWidth = 240;
 
@@ -59,7 +60,7 @@ const MainLayout: React.FC = () => {
     { text: 'Recommendations', path: '/recommendations', icon: <LightbulbIcon /> },
     { text: 'Resources', path: '/resources', icon: <StorageIcon /> },
     { text: 'Settings', path: '/settings', icon: <SettingsIcon /> },
-    { text: 'AI Models', path: '/ai-models', icon: <BrainIcon /> },
+    { text: 'AI Models', path: '/ai-models', icon: <PsychologyIcon /> }, // Using Psychology icon instead of BrainIcon
   ];
 
   const handleDrawerToggle = () => {
@@ -177,4 +178,4 @@ const MainLayout: React.FC = () => {
   );
 };
 
-export default MainLayout; 
+export default MainLayout;

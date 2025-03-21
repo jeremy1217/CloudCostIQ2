@@ -10,8 +10,12 @@ load_dotenv()
 # Get database URL from environment variables or use SQLite as default
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./app.db")
 
-# Create engine
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# Create engine with appropriate connect_args based on database type
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    # For PostgreSQL and other databases, no need for SQLite-specific connect_args
+    engine = create_engine(DATABASE_URL)
 
 # Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

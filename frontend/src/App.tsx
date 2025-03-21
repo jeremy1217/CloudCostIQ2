@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Box } from '@mui/material';
-import AIModelsDashboard from 'pages/AIModelsDashboard';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -15,10 +14,9 @@ import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import BudgetManagement from './pages/BudgetManagement';
 import TestPage from './pages/TestPage';
+import AIModelsDashboard from './pages/AIModelsDashboard';
 
 function App() {
-  console.log('BudgetManagement component:', BudgetManagement); // Debug log
-  
   return (
     <Router>
       <Routes>
@@ -30,12 +28,12 @@ function App() {
           <Route path="recommendations" element={<Recommendations />} />
           <Route path="resources" element={<Resources />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="ai-models" element={<AIModelsDashboard />} />
           <Route path="*" element={<NotFound />} />
-          <Route path="/ai-models" element={<AIModelsDashboard />} />
         </Route>
       </Routes>
     </Router>
   );
 }
 
-export default App; 
+export default App;

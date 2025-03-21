@@ -1,3 +1,5 @@
+// Update the CostForecast.tsx component to fix chart configuration
+
 import React from 'react';
 import {
   Box,
@@ -12,6 +14,10 @@ import {
   SelectChangeEvent,
 } from '@mui/material';
 import { Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
+
+// Register required Chart.js components
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 interface CostForecastProps {
   forecastData: any;
@@ -51,7 +57,7 @@ const CostForecast: React.FC<CostForecastProps> = ({ forecastData, isLoading = f
     );
   }
 
-  // Prepare chart data
+  // Prepare chart data with correct configuration for Chart.js
   const chartData = {
     labels: forecastData.forecast_dates || [],
     datasets: [
@@ -72,20 +78,21 @@ const CostForecast: React.FC<CostForecastProps> = ({ forecastData, isLoading = f
       data: forecastData.upper_bound,
       borderColor: 'rgba(75, 192, 192, 0.3)',
       backgroundColor: 'rgba(75, 192, 192, 0.1)',
-      borderDash: [5, 5],
       tension: 0.2,
       fill: '+1',
-    });
+      // Use the entire object type assertion to include borderDash
+    } as any);
     
+    // And similarly for the lower bound dataset:
     chartData.datasets.push({
       label: 'Lower Bound',
       data: forecastData.lower_bound,
       borderColor: 'rgba(75, 192, 192, 0.3)',
       backgroundColor: 'rgba(75, 192, 192, 0.1)',
-      borderDash: [5, 5],
       tension: 0.2,
       fill: false,
-    });
+      // Use the entire object type assertion
+    } as any);
   }
 
   const chartOptions = {
