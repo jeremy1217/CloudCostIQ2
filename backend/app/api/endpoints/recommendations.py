@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, Path
+from fastapi import APIRouter, Query, Path, Depends, HTTPException
 from typing import List, Optional
 from app.schemas.recommendations import (
     RightsizingRequest, RightsizingResponse,
@@ -68,7 +68,7 @@ async def get_rightsizing_recommendations(
         ]
     }
 
-@router.get("/unused-resources", response_model=UnusedResourcesResponse))
+@router.get("/unused-resources", response_model=UnusedResourcesResponse)
 async def get_unused_resources(
     request: UnusedResourcesRequest = Depends(),
     current_user: User = Depends(get_current_user)
@@ -120,7 +120,7 @@ async def get_unused_resources(
         ]
     }
 
-@router.get("/reservation-optimization", response_model=ReservationResponse))
+@router.get("/reservation-optimization", response_model=ReservationResponse)
 async def get_reservation_recommendations(
     request: ReservationRequest = Depends(),
     current_user: User = Depends(get_current_user)

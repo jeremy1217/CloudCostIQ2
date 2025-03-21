@@ -1,6 +1,7 @@
 import os
-from pydantic import BaseSettings, PostgresDsn, validator
-from typing import Optional, Dict, Any
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import PostgresDsn, field_validator
+from typing import Optional, Dict, Any, List
 
 class Settings(BaseSettings):
     # Database
@@ -14,6 +15,7 @@ class Settings(BaseSettings):
     # Environment
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
+    CORS_ORIGINS: str = "http://localhost:3000"
     
     # Celery
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"
@@ -22,7 +24,14 @@ class Settings(BaseSettings):
     # Directories
     ML_MODELS_DIR: str = "./ml_models"
     
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        env_file_encoding="utf-8",
+    )
 
-settings = Settings()
+# Calculate the absolute path to the .env file
+env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env")
+
+# Load settings from environment variables
+settings = Settings(_env_file=env_path)
