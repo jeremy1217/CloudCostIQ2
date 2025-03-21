@@ -14,6 +14,7 @@ import CostAnalysis from './pages/CostAnalysis';
 import Recommendations from './pages/Recommendations';
 import Resources from './pages/Resources';
 import Settings from './pages/Settings';
+import AIModelsDashboard from 'pages/AIModelsDashboard';
 import NotFound from './pages/NotFound';
 
 // Theme
@@ -58,6 +59,7 @@ root.render(
             <Route path="recommendations" element={<Recommendations />} />
             <Route path="resources" element={<Resources />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="ai-models" element={<AIModelsDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
