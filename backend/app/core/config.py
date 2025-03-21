@@ -1,6 +1,5 @@
 import os
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import PostgresDsn, field_validator
+from pydantic import BaseSettings, PostgresDsn, validator
 from typing import Optional, Dict, Any, List
 
 class Settings(BaseSettings):
@@ -24,11 +23,10 @@ class Settings(BaseSettings):
     # Directories
     ML_MODELS_DIR: str = "./ml_models"
     
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        case_sensitive=True,
-        env_file_encoding="utf-8",
-    )
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
+        env_file_encoding = "utf-8"
 
 # Calculate the absolute path to the .env file
 env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env")

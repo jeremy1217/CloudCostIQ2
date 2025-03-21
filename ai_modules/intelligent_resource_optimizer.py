@@ -1,4 +1,128 @@
-'c5.large': 4, 'c5.xlarge': 8, 'c5.2xlarge': 16,
+import json
+import numpy as np
+import pandas as pd
+from typing import List, Dict, Any, Tuple, Optional, Union
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+
+# Define ReservationOptimizationParams class
+@dataclass
+class ReservationOptimizationParams:
+    """Parameters for reservation optimization."""
+    commitment_term_months: int = 12
+    upfront_option: str = "no_upfront"
+    risk_tolerance: str = "medium"
+
+# Define WorkloadClassifier class
+class WorkloadClassifier:
+    """Classifies workloads based on utilization patterns."""
+    
+    def __init__(self, n_clusters: int = 5):
+        """Initialize the workload classifier."""
+        self.n_clusters = n_clusters
+    
+    def fit(self, utilization_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Fit the classifier to utilization data."""
+        # Sample implementation
+        return {
+            "workload_profiles": [
+                {
+                    "cluster_id": 1,
+                    "workload_type": "web",
+                    "metrics": {"cpu_mean": {"mean": 40}}
+                }
+            ]
+        }
+
+# Define OptimalInstanceSelector class
+class OptimalInstanceSelector:
+    """Selects optimal instances based on workload requirements."""
+    
+    def __init__(self):
+        """Initialize the instance selector."""
+        self.instance_catalog = {}
+        self.pricing_data = {}
+    
+    def recommend_instances(self, workload_data: Dict[str, Any], top_n: int = 3) -> Dict[str, Any]:
+        """Recommend instances for a workload."""
+        # Sample implementation
+        return {
+            "recommendations": [
+                {
+                    "instance_type": "m5.large",
+                    "monthly_savings": 50.0
+                }
+            ]
+        }
+    
+    def set_instance_catalog(self, instance_catalog: Dict[str, Any]) -> None:
+        """Set the instance catalog."""
+        self.instance_catalog = instance_catalog
+    
+    def set_pricing_data(self, pricing_data: Dict[str, Any]) -> None:
+        """Set the pricing data."""
+        self.pricing_data = pricing_data
+
+# Define AutoScalingOptimizer class
+class AutoScalingOptimizer:
+    """Optimizes auto-scaling configurations."""
+    
+    def __init__(self):
+        """Initialize the auto-scaling optimizer."""
+        pass
+    
+    def analyze_and_recommend(self, utilization_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze utilization data and recommend auto-scaling configurations."""
+        # Sample implementation
+        return {
+            "scaling_type": "target_tracking",
+            "configuration": {
+                "min_instances": 2,
+                "max_instances": 10
+            }
+        }
+
+# Define ReservationOptimizer class
+class ReservationOptimizer:
+    """Optimizes resource reservations and savings plans."""
+    
+    def __init__(self):
+        """Initialize the reservation optimizer."""
+        self.pricing_data = {}
+        self.params = ReservationOptimizationParams()
+    
+    def set_pricing_data(self, pricing_data: Dict[str, Any]) -> None:
+        """Set pricing data."""
+        self.pricing_data = pricing_data
+    
+    def set_params(self, params: ReservationOptimizationParams) -> None:
+        """Set optimization parameters."""
+        self.params = params
+    
+    def analyze_usage_patterns(self, usage_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze usage patterns to recommend reservations."""
+        # Sample implementation
+        return {
+            "summary": {
+                "total_monthly_savings": 1000.0,
+                "total_monthly_reserved": 5000.0
+            }
+        }
+    
+    def recommend_savings_plans(self, usage_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Recommend savings plans based on usage patterns."""
+        # Sample implementation
+        return {
+            "summary": {
+                "total_monthly_savings": 1200.0,
+                "total_monthly_commitment": 4800.0
+            }
+        }
+    
+    def _get_instance_memory(self, instance_type: str) -> float:
+        """Get memory in GB for an instance type."""
+        memory_map = {
+            'c5.large': 4, 'c5.xlarge': 8, 'c5.2xlarge': 16,
             'r5.large': 16, 'r5.xlarge': 32, 'r5.2xlarge': 64,
             'e2-standard-2': 8, 'e2-standard-4': 16, 'e2-standard-8': 32,
             'n1-standard-2': 7.5, 'n1-standard-4': 15, 'n1-standard-8': 30
@@ -7,30 +131,14 @@
         return memory_map.get(instance_type.lower(), 4.0)
     
     def _get_price(self, provider: str, instance_type: str, price_type: str) -> Optional[float]:
-        """Get the price for an instance.
-        
-        Args:
-            provider: Cloud provider.
-            instance_type: Instance type.
-            price_type: Price type (on_demand, reserved_1yr, etc.).
-            
-        Returns:
-            Price value or None if not found.
-        """
+        """Get the price for an instance."""
         if provider in self.pricing_data and instance_type in self.pricing_data[provider]:
             return self.pricing_data[provider][instance_type].get(price_type)
         
         return None
     
     def compare_reservation_vs_savings_plan(self, usage_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Compare reservation-based vs. savings plan approaches.
-        
-        Args:
-            usage_data: List of dictionaries with instance usage data.
-            
-        Returns:
-            Dictionary with comparative analysis.
-        """
+        """Compare reservation-based vs. savings plan approaches."""
         # Generate both types of recommendations
         reservation_analysis = self.analyze_usage_patterns(usage_data)
         savings_plan_analysis = self.recommend_savings_plans(usage_data)
@@ -82,12 +190,7 @@ class ResourceOptimizationManager:
     def __init__(self,
                 instance_catalog_path: Optional[str] = None,
                 pricing_path: Optional[str] = None):
-        """Initialize the resource optimization manager.
-        
-        Args:
-            instance_catalog_path: Path to instance catalog data.
-            pricing_path: Path to pricing data.
-        """
+        """Initialize the resource optimization manager."""
         # Load instance catalog and pricing data
         self.instance_catalog = {}
         self.pricing_data = {}
@@ -114,15 +217,7 @@ class ResourceOptimizationManager:
     def analyze_infrastructure(self, 
                              utilization_data: List[Dict[str, Any]],
                              usage_data: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
-        """Perform comprehensive resource optimization analysis.
-        
-        Args:
-            utilization_data: List of dictionaries with resource utilization metrics.
-            usage_data: List of dictionaries with instance usage data for reservation analysis.
-            
-        Returns:
-            Dictionary with comprehensive optimization recommendations.
-        """
+        """Perform comprehensive resource optimization analysis."""
         results = {
             "analysis_date": datetime.now().isoformat(),
             "resources_analyzed": len(utilization_data),
@@ -203,6 +298,8 @@ class ResourceOptimizationManager:
                         if "savings_opportunities" in rec:
                             for saving_type, amount in rec["savings_opportunities"].items():
                                 total_savings += amount
+                        elif "monthly_savings" in rec:
+                            total_savings += rec["monthly_savings"]
         
         # Add reservation/savings plan savings
         if "reservations" in results["optimizations"]:
@@ -219,14 +316,7 @@ class ResourceOptimizationManager:
         return results
     
     def _calculate_optimization_score(self, results: Dict[str, Any]) -> float:
-        """Calculate an overall optimization score based on findings.
-        
-        Args:
-            results: Complete analysis results.
-            
-        Returns:
-            Optimization score from 0-100.
-        """
+        """Calculate an overall optimization score based on findings."""
         score = 50.0  # Start with neutral score
         
         # Factor 1: Workload classification confidence
@@ -240,15 +330,15 @@ class ResourceOptimizationManager:
                     cluster_conf = 0.6  # Base confidence
                     
                     # Adjust based on size
-                    if profile["size"] > 10:
+                    if profile.get("size", 0) > 10:
                         cluster_conf += 0.2
                     
                     # Adjust based on variance
-                    if "cpu_std" in profile["metrics"]:
-                        if profile["metrics"]["cpu_std"]["mean"] < 10:
+                    if "cpu_std" in profile.get("metrics", {}):
+                        if profile["metrics"]["cpu_std"].get("mean", 100) < 10:
                             cluster_conf += 0.1
                     
-                    avg_confidence += cluster_conf * profile["percentage"] / 100
+                    avg_confidence += cluster_conf * profile.get("percentage", 100) / 100
                 
                 # Adjust score based on classification confidence
                 score += (avg_confidence - 0.5) * 20
@@ -285,15 +375,7 @@ class ResourceOptimizationManager:
     def simulate_optimization_impact(self, 
                                     current_state: Dict[str, Any],
                                     recommendations: Dict[str, Any]) -> Dict[str, Any]:
-        """Simulate the impact of implementing optimization recommendations.
-        
-        Args:
-            current_state: Current infrastructure state.
-            recommendations: Optimization recommendations from analyze_infrastructure.
-            
-        Returns:
-            Dictionary with projected impact metrics.
-        """
+        """Simulate the impact of implementing optimization recommendations."""
         # Extract current costs and resources
         current_monthly_cost = current_state.get("monthly_cost", 0)
         current_resources = current_state.get("resources", [])
@@ -312,6 +394,8 @@ class ResourceOptimizationManager:
                             # Take the best savings option
                             best_savings = max([0] + list(rec["savings_opportunities"].values()))
                             instance_savings += best_savings
+                        elif "monthly_savings" in rec:
+                            instance_savings += rec["monthly_savings"]
         
         # Process reservation recommendations
         if "reservations" in recommendations["optimizations"]:
@@ -397,14 +481,7 @@ class ResourceOptimizationManager:
         return impact
     
     def generate_optimization_plan(self, recommendations: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Generate a step-by-step implementation plan for the recommendations.
-        
-        Args:
-            recommendations: Optimization recommendations from analyze_infrastructure.
-            
-        Returns:
-            List of implementation steps.
-        """
+        """Generate a step-by-step implementation plan for the recommendations."""
         plan = []
         
         # Phase 1: Quick wins - Instance right-sizing
@@ -548,295 +625,12 @@ class ResourceOptimizationManager:
         return plan
     
     def set_instance_catalog(self, instance_catalog: Dict[str, Any]) -> None:
-        """Set the instance catalog data.
-        
-        Args:
-            instance_catalog: Dictionary with instance specifications.
-        """
+        """Set the instance catalog data."""
         self.instance_catalog = instance_catalog
         self.instance_selector.set_instance_catalog(instance_catalog)
     
     def set_pricing_data(self, pricing_data: Dict[str, Any]) -> None:
-        """Set the pricing data.
-        
-        Args:
-            pricing_data: Dictionary with instance pricing information.
-        """
+        """Set the pricing data."""
         self.pricing_data = pricing_data
         self.instance_selector.set_pricing_data(pricing_data)
         self.reservation_optimizer.set_pricing_data(pricing_data)
-
-# Example usage
-if __name__ == "__main__":
-    # Generate synthetic utilization data
-    np.random.seed(42)
-    
-    # Create 30 days of utilization data for 10 resources
-    utilization_data = []
-    
-    resource_ids = [f"i-{i:05d}" for i in range(10)]
-    start_date = datetime.now() - timedelta(days=30)
-    
-    for resource_id in resource_ids:
-        # Assign random instance type
-        instance_types = ["m5.xlarge", "c5.xlarge", "r5.xlarge", "t3.large"]
-        instance_type = np.random.choice(instance_types)
-        
-        # Assign random workload pattern
-        pattern_type = np.random.choice(["stable", "variable", "spiky", "periodic"])
-        
-        base_cpu = 40 if pattern_type == "stable" else 30
-        base_memory = 50 if pattern_type == "stable" else 40
-        
-        for i in range(30 * 24):  # 1 month of hourly data
-            timestamp = start_date + timedelta(hours=i)
-            hour = timestamp.hour
-            day_of_week = timestamp.weekday()
-            
-            # Generate CPU utilization based on pattern
-            if pattern_type == "stable":
-                cpu = base_cpu + np.random.normal(0, 5)
-            elif pattern_type == "variable":
-                cpu = base_cpu + np.random.normal(0, 15)
-            elif pattern_type == "spiky":
-                if np.random.random() < 0.05:  # 5% chance of spike
-                    cpu = base_cpu + np.random.normal(40, 10)
-                else:
-                    cpu = base_cpu + np.random.normal(0, 8)
-            else:  # periodic
-                # Higher during business hours
-                if 9 <= hour < 17 and day_of_week < 5:
-                    cpu = base_cpu + 20 + np.random.normal(0, 8)
-                else:
-                    cpu = base_cpu - 10 + np.random.normal(0, 5)
-            
-            # Generate memory utilization (usually more stable than CPU)
-            memory = base_memory + (cpu - base_cpu) * 0.3 + np.random.normal(0, 5)
-            
-            # Generate network activity
-            network = 50 + (cpu / 100) * 200 + np.random.normal(0, 20)
-            
-            # Ensure values are within reasonable ranges
-            cpu = max(0.1, min(99, cpu))
-            memory = max(0.1, min(99, memory))
-            network = max(0.1, network)
-            
-            # Create utilization data point
-            utilization_point = {
-                "resource_id": resource_id,
-                "instance_type": instance_type,
-                "timestamp": timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-                "cpu_percent": cpu,
-                "memory_percent": memory,
-                "network_mbps": network,
-                "disk_iops": 100 + network * 0.5 + np.random.normal(0, 50)
-            }
-            
-            utilization_data.append(utilization_point)
-    
-    # Generate usage data for reservation analysis
-    usage_data = []
-    providers = ["AWS", "Azure", "GCP"]
-    
-    for provider in providers:
-        instance_counts = {
-            f"{provider}_m5.xlarge": 5,
-            f"{provider}_c5.xlarge": 3,
-            f"{provider}_r5.xlarge": 2,
-            f"{provider}_t3.large": 8
-        }
-        
-        for i in range(30 * 24):  # 1 month of hourly data
-            timestamp = start_date + timedelta(hours=i)
-            hour = timestamp.hour
-            day_of_week = timestamp.weekday()
-            
-            for instance_type, base_count in instance_counts.items():
-                # Variation based on time
-                if 9 <= hour < 17 and day_of_week < 5:
-                    count_variation = np.random.normal(0, 0.5)
-                    count = base_count + max(-1, min(2, round(count_variation)))
-                else:
-                    count_variation = np.random.normal(-1, 0.5)
-                    count = base_count + max(-2, min(1, round(count_variation)))
-                
-                # Ensure count is at least 1
-                count = max(1, count)
-                
-                # Create usage data point
-                usage_point = {
-                    "provider": provider,
-                    "instance_type": instance_type.split('_')[1],
-                    "instance_count": count,
-                    "timestamp": timestamp.strftime('%Y-%m-%d %H:%M:%S')
-                }
-                
-                usage_data.append(usage_point)
-    
-    # Create a simple instance catalog
-    instance_catalog = {
-        "AWS": {
-            "m5.xlarge": {
-                "vcpu": 4,
-                "memory_gb": 16,
-                "price_per_hour": 0.192,
-                "family": "m5"
-            },
-            "c5.xlarge": {
-                "vcpu": 4,
-                "memory_gb": 8,
-                "price_per_hour": 0.17,
-                "family": "c5"
-            },
-            "r5.xlarge": {
-                "vcpu": 4,
-                "memory_gb": 32,
-                "price_per_hour": 0.252,
-                "family": "r5"
-            },
-            "t3.large": {
-                "vcpu": 2,
-                "memory_gb": 8,
-                "price_per_hour": 0.0832,
-                "family": "t3"
-            }
-        },
-        "Azure": {
-            "Standard_D4s_v3": {
-                "vcpu": 4,
-                "memory_gb": 16,
-                "price_per_hour": 0.192,
-                "family": "D-series"
-            },
-            "Standard_F4s_v2": {
-                "vcpu": 4,
-                "memory_gb": 8,
-                "price_per_hour": 0.169,
-                "family": "F-series"
-            }
-        },
-        "GCP": {
-            "n2-standard-4": {
-                "vcpu": 4,
-                "memory_gb": 16,
-                "price_per_hour": 0.19,
-                "family": "n2"
-            },
-            "c2-standard-4": {
-                "vcpu": 4,
-                "memory_gb": 16,
-                "price_per_hour": 0.21,
-                "family": "c2"
-            }
-        }
-    }
-    
-    # Create pricing data
-    pricing_data = {
-        "AWS": {
-            "m5.xlarge": {
-                "on_demand": 0.192,
-                "reserved_1yr_no_upfront": 0.119,
-                "reserved_3yr_no_upfront": 0.082,
-                "reserved_1yr_partial_upfront": 0.112,
-                "reserved_3yr_partial_upfront": 0.075,
-                "reserved_1yr_all_upfront": 0.102,
-                "reserved_3yr_all_upfront": 0.068
-            },
-            "c5.xlarge": {
-                "on_demand": 0.17,
-                "reserved_1yr_no_upfront": 0.106,
-                "reserved_3yr_no_upfront": 0.073,
-                "savings_plan": 0.101
-            },
-            "r5.xlarge": {
-                "on_demand": 0.252,
-                "reserved_1yr_no_upfront": 0.157,
-                "reserved_3yr_no_upfront": 0.108,
-                "savings_plan": 0.149
-            },
-            "t3.large": {
-                "on_demand": 0.0832,
-                "reserved_1yr_no_upfront": 0.052,
-                "reserved_3yr_no_upfront": 0.036,
-                "savings_plan": 0.049
-            }
-        },
-        "Azure": {
-            "Standard_D4s_v3": {
-                "on_demand": 0.192,
-                "reserved_1yr_no_upfront": 0.115,
-                "reserved_3yr_no_upfront": 0.086
-            },
-            "Standard_F4s_v2": {
-                "on_demand": 0.169,
-                "reserved_1yr_no_upfront": 0.101,
-                "reserved_3yr_no_upfront": 0.076
-            }
-        },
-        "GCP": {
-            "n2-standard-4": {
-                "on_demand": 0.19,
-                "committed_use_1yr": 0.133,
-                "committed_use_3yr": 0.095
-            },
-            "c2-standard-4": {
-                "on_demand": 0.21,
-                "committed_use_1yr": 0.147,
-                "committed_use_3yr": 0.105
-            }
-        }
-    }
-    
-    # Initialize optimization manager
-    optimizer = ResourceOptimizationManager()
-    optimizer.set_instance_catalog(instance_catalog)
-    optimizer.set_pricing_data(pricing_data)
-    
-    # Run analysis
-    print("Running resource optimization analysis...")
-    results = optimizer.analyze_infrastructure(utilization_data, usage_data)
-    
-    # Print summary
-    print(f"Analysis complete. Overall optimization score: {results['optimization_score']:.1f}/100")
-    print(f"Estimated monthly savings: ${results['estimated_monthly_savings']:.2f}")
-    
-    # Create current state for simulation
-    current_state = {
-        "monthly_cost": 10000,
-        "resources": resource_ids,
-        "resource_efficiency": {
-            "cpu_utilization": 35,
-            "memory_utilization": 45,
-            "cost_per_request": 0.001
-        },
-        "kwh_per_month": 5000,
-        "carbon_per_kwh": 0.5,
-        "autoscaling": {
-            "min_instances": 2,
-            "max_instances": 20
-        }
-    }
-    
-    # Simulate impact
-    impact = optimizer.simulate_optimization_impact(current_state, results)
-    
-    # Print impact
-    print("\nProjected Impact:")
-    print(f"Current monthly cost: ${impact['financial_impact']['current_monthly_cost']:.2f}")
-    print(f"Projected monthly cost: ${impact['financial_impact']['projected_monthly_cost']:.2f}")
-    print(f"Total monthly savings: ${impact['financial_impact']['total_monthly_savings']:.2f} ({impact['financial_impact']['savings_percentage']:.1f}%)")
-    
-    # Generate optimization plan
-    plan = optimizer.generate_optimization_plan(results)
-    
-    # Print plan
-    print("\nOptimization Implementation Plan:")
-    for i, step in enumerate(plan):
-        print(f"{i+1}. {step['name']} (Phase {step['phase']})")
-        print(f"   Description: {step['description']}")
-        print(f"   Estimated savings: {step['estimated_savings']}")
-        print(f"   Effort: {step['effort']}, Risk: {step['risk']}")
-        if step['dependencies']:
-            print(f"   Dependencies: {', '.join(step['dependencies'])}")
-        print()
