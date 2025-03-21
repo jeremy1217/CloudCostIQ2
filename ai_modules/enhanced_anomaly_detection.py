@@ -2,13 +2,20 @@ from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import numpy as np
 import pandas as pd
-import tensorflow as tf
-from tensorflow.keras.models import Sequential, Model
-from tensorflow.keras.layers import Dense, LSTM, Dropout, RepeatVector, TimeDistributed, Input
 import joblib
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Tuple, Optional
 import json
+
+# Try to import TensorFlow, but make it optional
+try:
+    import tensorflow as tf
+    from tensorflow.keras.models import Sequential, Model
+    from tensorflow.keras.layers import Dense, LSTM, Dropout, RepeatVector, TimeDistributed, Input
+    TENSORFLOW_AVAILABLE = True
+except ImportError:
+    TENSORFLOW_AVAILABLE = False
+    print("TensorFlow is not available. Using fallback to Isolation Forest only.")
 
 class DeepAnomalyDetector:
     """Advanced anomaly detection model for cloud cost data using deep learning."""
@@ -30,6 +37,13 @@ class DeepAnomalyDetector:
         self.training_date = None
         self.threshold = None
         self.scaler = MinMaxScaler()
+        self.model = None  # Initialize to None
+        
+        # Create a traditional Isolation Forest as backup/comparison or primary when TF not available
+        self.isolation_forest = IsolationForest(
+            contamination=0.05,
+            random_state=self.params["random_state"]
+        )
         
         if model_path:
             self._load_model(model_path)
@@ -37,7 +51,11 @@ class DeepAnomalyDetector:
             self._build_model()
     
     def _build_model(self):
-        """Build an LSTM autoencoder for anomaly detection."""
+        """Build an LSTM autoencoder for anomaly detection if TensorFlow is available."""
+        if not TENSORFLOW_AVAILABLE:
+            # Skip building the TensorFlow model if TensorFlow is not available
+            return
+            
         # Define the sequence length
         seq_length = self.params["seq_length"]
         
@@ -60,19 +78,10 @@ class DeepAnomalyDetector:
         # Create autoencoder model
         self.model = Model(inputs, decoded)
         self.model.compile(optimizer='adam', loss='mse')
-        
-        # Also create a traditional Isolation Forest as backup/comparison
-        self.isolation_forest = IsolationForest(
-            contamination=0.05,
-            random_state=self.params["random_state"]
-        )
     
     def _load_model(self, model_path: str):
         """Load the model from disk."""
         try:
-            # Load Keras model
-            self.model = tf.keras.models.load_model(f"{model_path}_keras")
-            
             # Load metadata
             metadata = joblib.load(f"{model_path}_metadata")
             self.version = metadata.get("version", self.version)
@@ -83,6 +92,10 @@ class DeepAnomalyDetector:
             
             # Load isolation forest
             self.isolation_forest = joblib.load(f"{model_path}_iforest")
+            
+            # Load Keras model only if TensorFlow is available
+            if TENSORFLOW_AVAILABLE:
+                self.model = tf.keras.models.load_model(f"{model_path}_keras")
             
         except Exception as e:
             print(f"Error loading model: {e}")
@@ -166,7 +179,21 @@ class DeepAnomalyDetector:
         # Scale the data
         scaled_data = self.scaler.fit_transform(features_df)
         
-        # Create sequences
+        # Train the isolation forest model
+        self.isolation_forest.fit(scaled_data)
+        
+        # Store training date
+        self.training_date = datetime.now().isoformat()
+        
+        # If TensorFlow is not available, return early with only isolation forest results
+        if not TENSORFLOW_AVAILABLE:
+            return {
+                "model_type": "isolation_forest",
+                "training_samples": scaled_data.shape[0],
+                "training_date": self.training_date
+            }
+            
+        # Create sequences for LSTM autoencoder if TensorFlow is available
         seq_length = self.params["seq_length"]
         sequences = self._create_sequences(scaled_data, seq_length)
         
@@ -188,17 +215,13 @@ class DeepAnomalyDetector:
             # Set threshold based on the percentile of reconstruction errors
             self.threshold = np.percentile(reconstruction_errors, self.params["threshold_percentile"])
             
-            # Also train the isolation forest on the flattened data
-            self.isolation_forest.fit(scaled_data)
-            
-            # Store training date
-            self.training_date = datetime.now().isoformat()
-            
             return {
+                "model_type": "ensemble",
                 "history": history.history,
                 "threshold": self.threshold,
                 "reconstruction_errors": reconstruction_errors.tolist(),
-                "training_samples": sequences.shape[0]
+                "training_samples": sequences.shape[0],
+                "training_date": self.training_date
             }
         else:
             raise ValueError("Not enough data to create sequences for training")
@@ -222,11 +245,31 @@ class DeepAnomalyDetector:
         # Scale the data
         scaled_data = self.scaler.transform(features_df)
         
-        # Create sequences
+        # Get anomaly scores from Isolation Forest
+        iforest_scores = self.isolation_forest.decision_function(scaled_data)
+        iforest_anomalies = self.isolation_forest.predict(scaled_data) == -1
+        
+        # Apply isolation forest detection to results
+        for i, (score, is_anomaly) in enumerate(zip(iforest_scores, iforest_anomalies)):
+            result_data[i]['iforest_anomaly'] = bool(is_anomaly)
+            result_data[i]['iforest_score'] = float(score)
+            # Initialize final anomaly flag with isolation forest results
+            result_data[i]['is_anomaly'] = bool(is_anomaly)
+        
+        # If TensorFlow is not available or we're not using ensemble, return with just isolation forest results
+        if not TENSORFLOW_AVAILABLE or not ensemble or self.model is None:
+            # Generate explanations
+            for i, data_point in enumerate(result_data):
+                if data_point['is_anomaly']:
+                    explanation = self._generate_explanation(data_point, i, features_df, cost_data)
+                    result_data[i]['explanation'] = explanation
+            return result_data
+        
+        # Get anomaly scores from LSTM autoencoder if TensorFlow is available and requested
         seq_length = self.params["seq_length"]
         sequences = self._create_sequences(scaled_data, seq_length)
         
-        # Get anomaly scores from LSTM autoencoder
+        # Detect LSTM anomalies if we have enough data
         lstm_anomalies = []
         if sequences.shape[0] > 0:
             reconstructions = self.model.predict(sequences)
@@ -245,43 +288,16 @@ class DeepAnomalyDetector:
                     idx = i + seq_length  # the prediction is for the point after the sequence
                     result_data[idx]['lstm_anomaly'] = bool(is_anomaly)
                     result_data[idx]['lstm_score'] = float(reconstruction_errors[i])
-        
-        # Get anomaly scores from Isolation Forest
-        iforest_scores = self.isolation_forest.decision_function(scaled_data)
-        iforest_anomalies = self.isolation_forest.predict(scaled_data) == -1
-        
-        for i, (score, is_anomaly) in enumerate(zip(iforest_scores, iforest_anomalies)):
-            result_data[i]['iforest_anomaly'] = bool(is_anomaly)
-            result_data[i]['iforest_score'] = float(score)
-            
-            # For ensemble approach, determine final anomaly status
-            if ensemble:
-                # Use LSTM if available for the data point, otherwise use Isolation Forest
-                if i >= seq_length and i < len(result_data) - 1:
-                    lstm_idx = i - seq_length
-                    if lstm_idx < len(lstm_anomalies):
-                        result_data[i]['is_anomaly'] = bool(lstm_anomalies[lstm_idx] or is_anomaly)
-                    else:
-                        result_data[i]['is_anomaly'] = bool(is_anomaly)
-                else:
-                    result_data[i]['is_anomaly'] = bool(is_anomaly)
-            else:
-                # If not using ensemble, just use Isolation Forest for consistent coverage
-                result_data[i]['is_anomaly'] = bool(is_anomaly)
+                    # Combine with isolation forest using OR logic
+                    result_data[idx]['is_anomaly'] = bool(is_anomaly) or result_data[idx]['iforest_anomaly']
         
         # Generate explanations for anomalies
         for i, data_point in enumerate(result_data):
             if data_point.get('is_anomaly', False):
-                data_point['explanation'] = self._generate_explanation(
-                    data_point, 
-                    i, 
-                    features_df, 
-                    cost_data
-                )
+                explanation = self._generate_explanation(data_point, i, features_df, cost_data)
+                result_data[i]['explanation'] = explanation
         
-        # Return only the anomalies
-        anomalies = [d for d in result_data if d.get('is_anomaly', False)]
-        return anomalies
+        return result_data
     
     def _generate_explanation(self, data_point: Dict[str, Any], index: int, features_df: pd.DataFrame, original_data: List[Dict[str, Any]]) -> str:
         """Generate a human-readable explanation for why a point was detected as an anomaly."""
@@ -353,13 +369,14 @@ class DeepAnomalyDetector:
             return "Unusual spending pattern detected based on historical patterns."
     
     def save_model(self, model_path: str) -> None:
-        """Save the trained model to disk.
+        """Save the model to disk.
         
         Args:
-            model_path: Path to save the model files.
+            model_path: Base path to save model files
         """
         # Save Keras model
-        self.model.save(f"{model_path}_keras")
+        if TENSORFLOW_AVAILABLE and self.model is not None:
+            self.model.save(f"{model_path}_keras")
         
         # Save isolation forest
         joblib.dump(self.isolation_forest, f"{model_path}_iforest")
@@ -367,12 +384,14 @@ class DeepAnomalyDetector:
         # Save metadata
         metadata = {
             "version": self.version,
-            "training_date": self.training_date,
             "params": self.params,
+            "training_date": self.training_date,
             "threshold": self.threshold,
             "scaler": self.scaler
         }
         joblib.dump(metadata, f"{model_path}_metadata")
+        
+        print(f"Model saved to {model_path}")
 
 # Example function to evaluate model performance
 def evaluate_anomaly_detection(
@@ -383,28 +402,28 @@ def evaluate_anomaly_detection(
     """Evaluate anomaly detection model performance.
     
     Args:
-        model: Trained DeepAnomalyDetector model.
-        test_data: Test data as list of dictionaries.
-        known_anomalies: List of indices that are known anomalies (for calculating precision/recall).
+        model: Trained anomaly detector
+        test_data: Test data to evaluate
+        known_anomalies: Indices of known anomalies for evaluation
         
     Returns:
-        Dictionary with evaluation metrics.
+        Dictionary with evaluation metrics
     """
     # Detect anomalies
-    detected_anomalies = model.detect_anomalies(test_data)
+    # Use ensemble only if TensorFlow is available
+    detected_anomalies = model.detect_anomalies(test_data, ensemble=TENSORFLOW_AVAILABLE)
     
-    # Get indices of detected anomalies
-    detected_indices = [test_data.index(anomaly) for anomaly in detected_anomalies if anomaly in test_data]
+    # Extract anomaly indices
+    detected_indices = [i for i, d in enumerate(detected_anomalies) if d.get('is_anomaly', False)]
     
     results = {
-        "num_detected": len(detected_anomalies),
-        "detected_percent": len(detected_anomalies) / len(test_data) * 100,
-        "detected_indices": detected_indices
+        "detected_count": len(detected_indices),
+        "total_points": len(test_data)
     }
     
-    # If we have known anomalies, calculate precision and recall
+    # If we have ground truth data, compute precision/recall
     if known_anomalies:
-        true_positives = len(set(detected_indices).intersection(set(known_anomalies)))
+        true_positives = len(set(detected_indices) & set(known_anomalies))
         false_positives = len(detected_indices) - true_positives
         false_negatives = len(known_anomalies) - true_positives
         

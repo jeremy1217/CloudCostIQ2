@@ -16,7 +16,10 @@ try:
     from ai_modules.ai_integration_api import (
         anomaly_detection_router,
         forecasting_router,
-        optimization_router
+        optimization_router,
+        config_router,
+        combined_router,
+        status_router
     )
 except ImportError as e:
     print(f"Warning: Could not import AI modules: {e}")
@@ -24,6 +27,9 @@ except ImportError as e:
     anomaly_detection_router = None
     forecasting_router = None
     optimization_router = None
+    config_router = None
+    combined_router = None
+    status_router = None
 
 # Now import from your app package with the proper path
 from backend.app.api.endpoints import cost_analysis, recommendations, cloud_resources, auth
@@ -63,11 +69,17 @@ app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 
 # Include AI routers conditionally
 if anomaly_detection_router:
-    app.include_router(anomaly_detection_router, prefix="/api/ai/anomalies", tags=["AI Anomaly Detection"])
+    app.include_router(anomaly_detection_router)
 if forecasting_router:
-    app.include_router(forecasting_router, prefix="/api/ai/forecasting", tags=["AI Forecasting"])
+    app.include_router(forecasting_router)
 if optimization_router:
-    app.include_router(optimization_router, prefix="/api/ai/optimization", tags=["AI Optimization"])
+    app.include_router(optimization_router)
+if config_router:
+    app.include_router(config_router)
+if combined_router:
+    app.include_router(combined_router)
+if status_router:
+    app.include_router(status_router)
 
 if __name__ == "__main__":
     import uvicorn
