@@ -11,10 +11,13 @@ const USE_MOCK_API = process.env.REACT_APP_USE_MOCK_API === 'true' || true;
 export interface CostDataPoint {
   date: string;
   daily_cost: number;
-  service?: string;
-  cloud_provider?: string;
+  service: string;  // Changed from optional to required
+  cloud_provider: string;  // Changed from optional to required
   [key: string]: any; // For any additional properties
 }
+
+// Use the same interface as in mockData.ts to ensure compatibility
+export type CostEntry = CostDataPoint;
 
 export interface UtilizationDataPoint {
   resource_id: string;
@@ -84,7 +87,8 @@ export const getForecast = async (costData: CostDataPoint[], days: number = 30):
   }
 }>> => {
   if (shouldUseMock()) {
-    const forecast = mockDataService.generateForecastData(costData, days);
+    // Fixed: Use type assertion to match the expected type
+    const forecast = mockDataService.generateForecastData(costData as CostEntry[], days);
     
     return createMockResponse({
       forecast
