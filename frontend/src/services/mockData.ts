@@ -236,21 +236,18 @@ class MockDataService {
         service = AWS_SERVICES[Math.floor(random() * AWS_SERVICES.length)];
         
         // Select resource type based on service, default to first type if service not found
-        // Fix: Add type assertion
         const serviceTypes = (RESOURCE_TYPES.AWS as any)[service] || RESOURCE_TYPES.AWS['EC2'];
         resourceType = serviceTypes[Math.floor(random() * serviceTypes.length)];
       } else if (provider === 'Azure') {
         region = AZURE_REGIONS[Math.floor(random() * AZURE_REGIONS.length)];
         service = AZURE_SERVICES[Math.floor(random() * AZURE_SERVICES.length)];
         
-        // Fix: Add type assertion
         const serviceTypes = (RESOURCE_TYPES.Azure as any)[service] || RESOURCE_TYPES.Azure['Virtual Machines'];
         resourceType = serviceTypes[Math.floor(random() * serviceTypes.length)];
       } else {
         region = GCP_REGIONS[Math.floor(random() * GCP_REGIONS.length)];
         service = GCP_SERVICES[Math.floor(random() * GCP_SERVICES.length)];
         
-        // Fix: Add type assertion
         const serviceTypes = (RESOURCE_TYPES.GCP as any)[service] || RESOURCE_TYPES.GCP['Compute Engine'];
         resourceType = serviceTypes[Math.floor(random() * serviceTypes.length)];
       }
@@ -748,24 +745,7 @@ class MockDataService {
         
         instancesByType[resource.size].push(resource);
       }
-    
-    // Create optimization data
-    this.optimizationData = {
-    optimization_score: 65 + Math.random() * 20,
-    estimated_monthly_savings: parseFloat(estimatedMonthlySavings.toFixed(2)),
-    optimizations: {
-      workload_classification: {
-        // Fix: Use workloadProfiles instead of workload_profiles
-        workloadProfiles  // This should match the variable name defined earlier in the method
-      },
-      instance_recommendations: instanceRecommendations,
-      autoscaling: {
-        scaling_type: Math.random() > 0.5 ? "target_tracking" : "predictive",
-        configuration: {
-          min_instances: 2 + Math.floor(Math.random() * 3),
-          max_instances: 8 + Math.floor(Math.random() * 8)
-        }
-      },
+    });
     
     // Find underutilized instances
     const underutilizedInstances: Record<string, CloudResource[]> = {};
@@ -900,7 +880,7 @@ class MockDataService {
       estimated_monthly_savings: parseFloat(estimatedMonthlySavings.toFixed(2)),
       optimizations: {
         workload_classification: {
-          workloadProfiles
+          workload_profiles: workloadProfiles
         },
         instance_recommendations: instanceRecommendations,
         autoscaling: {
