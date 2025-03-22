@@ -157,6 +157,10 @@ interface BudgetAlert {
   spendAmount: number;
   read: boolean;
   type: 'threshold' | 'forecast' | 'anomaly';
+  severity?: 'high' | 'medium' | 'low';
+  message?: string;
+  recommendation?: string;
+  affectedResources?: string[];
 }
 
 interface BudgetHistory {
@@ -339,6 +343,10 @@ const MOCK_ALERTS: BudgetAlert[] = [
     spendAmount: 4000,
     read: false,
     type: 'threshold',
+    severity: 'medium',
+    message: 'Spending has reached 80% of the budget.',
+    recommendation: 'Review and optimize your resource usage.',
+    affectedResources: ['EC2 Instances'],
   },
   {
     id: 'alert-2',
@@ -349,6 +357,10 @@ const MOCK_ALERTS: BudgetAlert[] = [
     spendAmount: 2700,
     read: true,
     type: 'threshold',
+    severity: 'medium',
+    message: 'Spending has reached 90% of the budget.',
+    recommendation: 'Review and optimize your marketing campaigns.',
+    affectedResources: ['Advertising Platforms'],
   },
   {
     id: 'alert-3',
@@ -359,6 +371,10 @@ const MOCK_ALERTS: BudgetAlert[] = [
     spendAmount: 2050,
     read: false,
     type: 'forecast',
+    severity: 'high',
+    message: 'Forecasted spending exceeds the budget.',
+    recommendation: 'Optimize data processing workflows and resources.',
+    affectedResources: ['Data Pipeline', 'Data Storage'],
   },
 ];
 
@@ -393,6 +409,8 @@ const BudgetManagement = () => {
   const [budgetsToDelete, setBudgetsToDelete] = useState<string[]>([]);
   const [showAllAlerts, setShowAllAlerts] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
+  const [showAnomalyDetails, setShowAnomalyDetails] = useState(false);
+  const [anomalyDetailsAlert, setAnomalyDetailsAlert] = useState<BudgetAlert | null>(null);
   
   // Form state
   const initialFormData: BudgetFormData = {
@@ -860,6 +878,16 @@ const BudgetManagement = () => {
 
   const handleCloseAlert = (alertId: string) => {
     setAlerts(alerts.filter(alert => alert.id !== alertId));
+  };
+
+  const handleViewAlertDetails = (alert: BudgetAlert) => {
+    setAnomalyDetailsAlert(alert);
+    setShowAnomalyDetails(true);
+  };
+
+  const handleCloseAnomalyDetails = () => {
+    setAnomalyDetailsAlert(null);
+    setShowAnomalyDetails(false);
   };
 
   // Helper functions
@@ -1443,6 +1471,14 @@ const BudgetManagement = () => {
                             Mark as read
                           </Button>
                         )}
+                        <Button
+                          size="small"
+                          variant="text"
+                          color="primary"
+                          onClick={() => handleViewAlertDetails(alert)}
+                        >
+                          View Details
+                        </Button>
                         <IconButton 
                           size="small" 
                           onClick={() => handleCloseAlert(alert.id)}
@@ -2383,6 +2419,114 @@ const BudgetManagement = () => {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
+
+      {/* Alert Details Dialog */}
+      <Dialog 
+        open={showAnomalyDetails} 
+        onClose={handleCloseAnomalyDetails}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Alert Details
+          <IconButton
+            aria-label="close"
+            onClick={handleCloseAnomalyDetails}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          {anomalyDetailsAlert && (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                {anomalyDetailsAlert.budgetName}
+              </Typography>
+              
+              <Alert 
+                severity={
+                  anomalyDetailsAlert.severity === 'high' ? 'error' :
+                  anomalyDetailsAlert.severity === 'medium' ? 'warning' : 'info'
+                }
+                sx={{ mb: 3 }}
+              >
+                {anomalyDetailsAlert.message || 
+                  (anomalyDetailsAlert.type === 'threshold' 
+                    ? `Budget has reached ${anomalyDetailsAlert.threshold}% threshold` 
+                    : anomalyDetailsAlert.type === 'forecast' 
+                      ? 'Forecasted to exceed budget' 
+                      : 'Anomaly detected')}
+              </Alert>
+              
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <Paper variant="outlined" sx={{ p: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>Alert Information</Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="body2">
+                        <strong>Detected:</strong> {new Date(anomalyDetailsAlert.triggered).toLocaleString()}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Spend Amount:</strong> {formatCurrency(anomalyDetailsAlert.spendAmount)}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Severity:</strong> {anomalyDetailsAlert.severity 
+                          ? anomalyDetailsAlert.severity.charAt(0).toUpperCase() + anomalyDetailsAlert.severity.slice(1)
+                          : 'Medium'}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Type:</strong> {anomalyDetailsAlert.type.charAt(0).toUpperCase() + anomalyDetailsAlert.type.slice(1)}
+                      </Typography>
+                    </Box>
+                  </Paper>
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  <Paper variant="outlined" sx={{ p: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>Recommendation</Typography>
+                    <Typography variant="body2">
+                      {anomalyDetailsAlert.recommendation || 
+                        'Review your spending pattern and consider adjusting your budget or resource usage.'}
+                    </Typography>
+                    
+                    {anomalyDetailsAlert.affectedResources && anomalyDetailsAlert.affectedResources.length > 0 && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="subtitle2" gutterBottom>Affected Resources</Typography>
+                        <List dense>
+                          {anomalyDetailsAlert.affectedResources.map((resource, index) => (
+                            <ListItem key={index}>
+                              <ListItemIcon>
+                                <CloudCircleIcon fontSize="small" />
+                              </ListItemIcon>
+                              <ListItemText primary={resource} />
+                            </ListItem>
+                          ))}
+                        </List>
+                      </Box>
+                    )}
+                  </Paper>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseAnomalyDetails}>Close</Button>
+          <Button 
+            variant="contained" 
+            color="primary"
+            onClick={() => {
+              if (anomalyDetailsAlert) {
+                handleMarkAlertAsRead(anomalyDetailsAlert.id);
+                handleCloseAnomalyDetails();
+              }
+            }}
+          >
+            Mark as Read
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

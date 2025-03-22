@@ -16,6 +16,7 @@ import Resources from './pages/Resources';
 import Settings from './pages/Settings';
 import AIModelsDashboard from 'pages/AIModelsDashboard';
 import NotFound from './pages/NotFound';
+import BudgetManagement from './pages/BudgetManagement';
 
 // Theme
 import { createTheme } from '@mui/material/styles';
@@ -56,6 +57,7 @@ root.render(
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="cost-analysis" element={<CostAnalysis />} />
+            <Route path="budget-management" element={<BudgetManagement />} />
             <Route path="recommendations" element={<Recommendations />} />
             <Route path="resources" element={<Resources />} />
             <Route path="settings" element={<Settings />} />
