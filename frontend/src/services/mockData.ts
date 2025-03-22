@@ -748,24 +748,7 @@ class MockDataService {
         
         instancesByType[resource.size].push(resource);
       }
-    
-    // Create optimization data
-    this.optimizationData = {
-    optimization_score: 65 + Math.random() * 20,
-    estimated_monthly_savings: parseFloat(estimatedMonthlySavings.toFixed(2)),
-    optimizations: {
-      workload_classification: {
-        // Fix: Use workloadProfiles instead of workload_profiles
-        workloadProfiles  // This should match the variable name defined earlier in the method
-      },
-      instance_recommendations: instanceRecommendations,
-      autoscaling: {
-        scaling_type: Math.random() > 0.5 ? "target_tracking" : "predictive",
-        configuration: {
-          min_instances: 2 + Math.floor(Math.random() * 3),
-          max_instances: 8 + Math.floor(Math.random() * 8)
-        }
-      },
+    });
     
     // Find underutilized instances
     const underutilizedInstances: Record<string, CloudResource[]> = {};
@@ -900,7 +883,7 @@ class MockDataService {
       estimated_monthly_savings: parseFloat(estimatedMonthlySavings.toFixed(2)),
       optimizations: {
         workload_classification: {
-          workloadProfiles
+          workload_profiles: workloadProfiles
         },
         instance_recommendations: instanceRecommendations,
         autoscaling: {
@@ -1011,6 +994,9 @@ class MockDataService {
   }
   
   public getOptimizationData(): OptimizationData | null {
+    if (!this.optimizationData) {
+      this.generateOptimizationData();
+    }
     return this.optimizationData;
   }
   
@@ -1125,6 +1111,13 @@ class MockDataService {
       
       return result;
     }
+  }
+
+  /**
+   * Generate forecast data
+   */
+  public getForecast(costData: CostEntry[] = this.costData, days: number = 30): ForecastData {
+    return this.generateForecastData(costData, days);
   }
 }
 

@@ -88,7 +88,7 @@ export const getForecast = async (costData: CostDataPoint[], days: number = 30):
 }>> => {
   if (shouldUseMock()) {
     // Fixed: Use type assertion to match the expected type
-    const forecast = mockDataService.generateForecastData(costData as CostEntry[], days);
+    const forecast = mockDataService.getForecast(costData as CostEntry[], days);
     
     return createMockResponse({
       forecast

@@ -108,7 +108,7 @@ export const useMockData = (options: {
     }
     
     if (fetchForecast) {
-      loadWithDelay(setForecast, mockDataService.generateForecastData(mockDataService.getCostData(), daysForForecast), setIsLoadingForecast);
+      loadWithDelay(setForecast, mockDataService.getForecast(mockDataService.getCostData(), daysForForecast), setIsLoadingForecast);
     }
   }, [
     fetchResources, 
