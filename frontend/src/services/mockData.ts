@@ -236,21 +236,18 @@ class MockDataService {
         service = AWS_SERVICES[Math.floor(random() * AWS_SERVICES.length)];
         
         // Select resource type based on service, default to first type if service not found
-        // Fix: Add type assertion
         const serviceTypes = (RESOURCE_TYPES.AWS as any)[service] || RESOURCE_TYPES.AWS['EC2'];
         resourceType = serviceTypes[Math.floor(random() * serviceTypes.length)];
       } else if (provider === 'Azure') {
         region = AZURE_REGIONS[Math.floor(random() * AZURE_REGIONS.length)];
         service = AZURE_SERVICES[Math.floor(random() * AZURE_SERVICES.length)];
         
-        // Fix: Add type assertion
         const serviceTypes = (RESOURCE_TYPES.Azure as any)[service] || RESOURCE_TYPES.Azure['Virtual Machines'];
         resourceType = serviceTypes[Math.floor(random() * serviceTypes.length)];
       } else {
         region = GCP_REGIONS[Math.floor(random() * GCP_REGIONS.length)];
         service = GCP_SERVICES[Math.floor(random() * GCP_SERVICES.length)];
         
-        // Fix: Add type assertion
         const serviceTypes = (RESOURCE_TYPES.GCP as any)[service] || RESOURCE_TYPES.GCP['Compute Engine'];
         resourceType = serviceTypes[Math.floor(random() * serviceTypes.length)];
       }
