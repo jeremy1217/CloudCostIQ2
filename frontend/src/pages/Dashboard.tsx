@@ -19,24 +19,6 @@ interface DashboardData {
   };
   // Other dashboard data properties as needed
 }
-const Dashboard = () => {
-  const { 
-    anomalies, 
-    forecast, 
-    isLoadingAnomalies, 
-    isLoadingForecast 
-  } = useMockData({
-    fetchAnomalies: true,
-    fetchForecast: true
-  });
-  
-  return (
-    <div>
-      <AnomalyDetection anomalies={anomalies} isLoading={isLoadingAnomalies} />
-      <CostForecast forecastData={forecast} isLoading={isLoadingForecast} />
-    </div>
-  );
-};
 
 const Dashboard: React.FC = () => {
   // Define proper state variables
